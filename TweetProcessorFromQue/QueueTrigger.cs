@@ -15,6 +15,7 @@ namespace TweetProcessorFromQue
         public string PartitionKey { get; set; }
         public string RowKey { get; set; }
         public long TweetID { get; set; }
+        public long? UserID { get; set; }
         public DateTime TweetTime { get; set; }
         public string Text { get; set; }
         public string Location { get; set; }
@@ -147,6 +148,7 @@ namespace TweetProcessorFromQue
                 RowKey = randomStr,
                 TweetID = status.Id,
                 TweetTime = status.CreatedAt.UtcDateTime,
+                UserID = status.User.Id,
                 Text = status.Text,
                 Location = location,
                 PlaceID = placeID,
