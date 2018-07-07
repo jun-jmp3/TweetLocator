@@ -103,6 +103,12 @@ namespace TweetProcessorFromQue
             {
                 location = placeResponse.FullName;
                 placeID = placeResponse.Id;
+                if (placeResponse.Centroid != null && placeResponse.Centroid.Length >= 2)
+                {
+                    latitude = placeResponse.Centroid[1];
+                    longitude = placeResponse.Centroid[0];
+                }
+
                 if (placeResponse.Geometry != null)
                 {
                     latitude = placeResponse.Geometry.Latitude;
@@ -115,6 +121,12 @@ namespace TweetProcessorFromQue
             {
                 location = place.FullName;
                 placeID = place.Id;
+
+                if (place.Centroid != null && place.Centroid.Length >= 2)
+                {
+                    latitude = place.Centroid[1];
+                    longitude = place.Centroid[0];
+                }
                 if (place.Geometry != null)
                 {
                     latitude = place.Geometry.Latitude;
