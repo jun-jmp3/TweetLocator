@@ -34,6 +34,11 @@ namespace TweetProcessorFromQue
                 string accessToken = config["AccessToken"];
                 string accessTokenSecret = config["AccessTokenSecret"];
 
+                if (string.IsNullOrEmpty(consumerKey) || string.IsNullOrEmpty(consumerSecret) || string.IsNullOrEmpty(accessToken) || string.IsNullOrEmpty(accessTokenSecret)) {
+                    log.Error("can't read configuration about token.");
+                    return;
+                }
+
                 var tokens = Tokens.Create(consumerKey, consumerSecret, accessToken, accessTokenSecret);
                 // log.Info($"twitter token created: {tokens.ToString()}");
 
