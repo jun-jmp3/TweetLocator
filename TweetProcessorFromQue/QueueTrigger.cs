@@ -17,6 +17,8 @@ namespace TweetProcessorFromQue
         public long TweetID { get; set; }
         public DateTime TweetTime { get; set; }
         public string Text { get; set; }
+        public string Location { get; set; }
+        public string PlaceID { get; set; }
         public double Latitude { get; set; }
         public double Longitude { get; set; }
     }
@@ -78,35 +80,26 @@ namespace TweetProcessorFromQue
         private static void InsertRecord(ICollector<TweetLocationTable> locationTable,
                                          StatusResponse status,
                                          TraceWriter log) {
-            
+            string location = "";
             double latitude = 0.0;
             double longitude = 0.0;
+            string placeID = "";
             var place = status.Place;
-            if (status.Coordinates != null || place != null)
-            {
-                log.Info($"{status.User.ScreenName} {status.Text}");
-            }
-
-
 
             if (status.Coordinates != null)
             {
-                log.Info($"Status Coordinates: {status.Coordinates.Longitude},{status.Coordinates.Latitude}");
+                latitude = status.Coordinates.Latitude;
+                longitude = status.Coordinates.Longitude;
             }
 
             if (place != null)
             {
-                log.Info($"Place: {place.FullName},{place.Id}");
-
-                if (place.Centroid != null)
-                {
-                    foreach (var oid in place.Centroid)
-                        log.Info($"Centoroid {oid}");
-                }
-
+                location = place.FullName;
+                placeID = place.Id;
                 if (place.Geometry != null)
                 {
-                    log.Info($"Long: {place.Geometry.Longitude}, Lat:{place.Geometry.Latitude}");
+                    latitude = place.Geometry.Latitude;
+                    longitude = place.Geometry.Longitude;
                 }
             }
 
@@ -124,6 +117,8 @@ namespace TweetProcessorFromQue
                 TweetID = status.Id,
                 TweetTime = status.CreatedAt.UtcDateTime,
                 Text = status.Text,
+                Location = location,
+                PlaceID = placeID,
                 Latitude = latitude,
                 Longitude = longitude
             }
