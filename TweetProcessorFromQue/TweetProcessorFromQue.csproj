@@ -9,6 +9,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Remove="QueueTrigger\function.json" />
+    <None Remove="InsertTweetLocation\function.json" />
   </ItemGroup>
   <ItemGroup>
     <None Update="host.json">
@@ -18,5 +19,8 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>Never</CopyToPublishDirectory>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="InsertTweetLocation\InsertTweetLocation.cs" />
   </ItemGroup>
 </Project>
