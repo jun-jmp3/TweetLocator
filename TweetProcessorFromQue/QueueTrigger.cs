@@ -16,6 +16,7 @@ namespace TweetProcessorFromQue
         public string RowKey { get; set; }
         public long TweetID { get; set; }
         public long? UserID { get; set; }
+        public string ScreenName { get; set; }
         public DateTime TweetTime { get; set; }
         public string Text { get; set; }
         public string Location { get; set; }
@@ -149,6 +150,7 @@ namespace TweetProcessorFromQue
                 TweetID = status.Id,
                 TweetTime = status.CreatedAt.UtcDateTime,
                 UserID = status.User.Id,
+                ScreenName = status.User.ScreenName,
                 Text = status.Text,
                 Location = location,
                 PlaceID = placeID,
