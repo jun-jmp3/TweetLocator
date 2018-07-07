@@ -63,8 +63,15 @@ namespace TweetProcessorFromQue
                 var task = tokens.Statuses.ShowAsync(id => myQueueItem);
                 var status = task.Result;
 
+                PlaceResponse place = null;
+                if (status.Place != null) {
+
+                    var task2 = tokens.Geo.IdAsync(status.Place.Id);
+                    place = task2.Result;
+                    
+                }
                 // ツイートを記録する
-                InsertRecord(locationTable, status, log);
+                InsertRecord(locationTable, status, place, log);
 
             }
             catch (Exception ex)
@@ -79,12 +86,12 @@ namespace TweetProcessorFromQue
         /// </summary>
         private static void InsertRecord(ICollector<TweetLocationTable> locationTable,
                                          StatusResponse status,
+                                         PlaceResponse placeResponse,
                                          TraceWriter log) {
             string location = "";
             double latitude = 0.0;
             double longitude = 0.0;
             string placeID = "";
-            var place = status.Place;
 
             if (status.Coordinates != null)
             {
@@ -92,6 +99,18 @@ namespace TweetProcessorFromQue
                 longitude = status.Coordinates.Longitude;
             }
 
+            if (placeResponse != null)
+            {
+                location = placeResponse.FullName;
+                placeID = placeResponse.Id;
+                if (placeResponse.Geometry != null)
+                {
+                    latitude = placeResponse.Geometry.Latitude;
+                    longitude = placeResponse.Geometry.Longitude;
+                }
+            }
+
+            var place = status.Place;
             if (place != null)
             {
                 location = place.FullName;
