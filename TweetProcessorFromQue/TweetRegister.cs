@@ -4,6 +4,9 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.Configuration;
 
+using System.Text.RegularExpressions;
+using System.Net;
+
 using CoreTweet;
 using CoreTweet.Core;
 using CoreTweet.Rest;
@@ -71,11 +74,37 @@ namespace TweetProcessorFromQue
                 }
             }
 
+            /*
             // RowKeyの重複回避のためランダムな文字列を生成する
             Random random = new Random();
             string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
             string randomStr = new string(Enumerable.Repeat(chars, 32)
                 .Select(s => s[random.Next(s.Length)]).ToArray());
+            */
+
+            // Textの中からUrlを取得して短縮URLを解決する。
+            Regex regex = new Regex("(.*)(?<url>https://t.co/[a-zA-Z0-9]{10}?)(.*)");
+            Match match = regex.Match(status.Text);
+            string url = match.Groups["url"].Value;
+
+            string realUrl = "";
+
+            if (url != null)
+            {
+
+                try
+                {
+                    WebRequest req = WebRequest.Create(url);
+
+                    using (WebResponse res = req.GetResponse())
+                    {
+                        realUrl = res.ResponseUri.AbsoluteUri;
+                    }
+                }
+                catch (Exception)
+                {
+                }
+            }
 
             // SampleTableへEntity(レコード)登録
             locationTable.Add(new TweetLocationTable()
@@ -88,6 +117,7 @@ namespace TweetProcessorFromQue
                 UserID = status.User.Id,
                 ScreenName = status.User.ScreenName,
                 Text = status.Text,
+                Url = realUrl,
                 Location = location,
                 PlaceID = placeID,
                 Latitude = latitude,
