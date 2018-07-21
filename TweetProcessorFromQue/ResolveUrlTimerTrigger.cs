@@ -44,14 +44,24 @@ namespace TweetProcessorFromQue
 
                             WebRequest req = WebRequest.Create(item.Url);
 
-                            req.GetResponseAsync().ContinueWith(task =>
+                            var res = req.GetResponse();
+                            realUrl = res.ResponseUri.AbsoluteUri;
+                            outputTable.Add(new TweetLocationTable()
                             {
-                                using (WebResponse res = task.Result)
-                                {
-                                    realUrl = res.ResponseUri.AbsoluteUri;
-                                }
-                            });
-
+                                PartitionKey = item.PartitionKey,
+                                RowKey = item.RowKey,
+                                TweetID = item.TweetID,
+                                TweetTime = item.TweetTime,
+                                UserID = item.UserID,
+                                ScreenName = item.ScreenName,
+                                Text = item.Text,
+                                Url = realUrl,
+                                Location = item.Location,
+                                PlaceID = item.PlaceID,
+                                Latitude = item.Latitude,
+                                Longitude = item.Longitude
+                            });                                
+ 
                         }
                         catch (Exception ex)
                         {
@@ -64,21 +74,6 @@ namespace TweetProcessorFromQue
                         }
                     }
 
-                    outputTable.Add(new TweetLocationTable()
-                    {
-                        PartitionKey = item.PartitionKey,
-                        RowKey = item.RowKey,
-                        TweetID = item.TweetID,
-                        TweetTime = item.TweetTime,
-                        UserID = item.UserID,
-                        ScreenName = item.ScreenName,
-                        Text = item.Text,
-                        Url = realUrl,
-                        Location = item.Location,
-                        PlaceID = item.PlaceID,
-                        Latitude = item.Latitude,
-                        Longitude = item.Longitude
-                    });
 
                 } catch (Exception ex) {
                     log.Error($"Insert Error: {ex.Message}");
