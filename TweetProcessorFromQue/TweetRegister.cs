@@ -93,7 +93,6 @@ namespace TweetProcessorFromQue
             }
 
 
-            /*
             if (url != null)
             {
 
@@ -156,8 +155,8 @@ namespace TweetProcessorFromQue
                 }
                                  );
             }
-            */
 
+            /*
             // SampleTableへEntity(レコード)登録
             locationTable.Add(new TweetLocationTable()
             {
@@ -176,7 +175,7 @@ namespace TweetProcessorFromQue
                 Longitude = longitude
             }
                              );
-
+            */
         }
     
     
