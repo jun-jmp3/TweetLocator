@@ -18,17 +18,40 @@ namespace TweetProcessorFromQue
         [FunctionName("ResolveUrlTimerTrigger")]
         public static void Run(
             [TimerTrigger("0 */5 * * * *")]TimerInfo myTimer, 
-            [Table("TweetLocation")] CloudTable inputTable,
-            [Table("TweetLocation3")] CloudTable outputTable,
+            [Table("TweetLocation", Connection = "AzureWebJobsStorage")] CloudTable inputTable,
+            [Table("TweetLocation3", Connection = "AzureWebJobsStorage")] ICollector<TweetLocationTable> outputTable,
             TraceWriter log,
             ExecutionContext context)
         {
             log.Info($"C# Timer trigger function executed at: {DateTime.Now}");
 
-            var querySegment = inputTable.ExecuteQuerySegmentedAsync(new TableQuery<TweetLocationTable>(), null);
+            var querySegment = inputTable.ExecuteQuerySegmentedAsync(new TableQuery<TweetLocationTable>().Where(
+                TableQuery.GenerateFilterCondition("ScreenName", QueryComparisons.Equal, "fjun2347")), null);
             foreach (TweetLocationTable item in querySegment.Result)
             {
-                log.Info($"Data loaded: '{item.PartitionKey}' | '{item.RowKey}' | '{item.ScreenName}' | '{item.Text}'");
+                try
+                {
+                    log.Info($"Data loaded: '{item.PartitionKey}' | '{item.RowKey}' | '{item.ScreenName}' | '{item.Text}'");
+
+                    outputTable.Add(new TweetLocationTable()
+                    {
+                        PartitionKey = item.PartitionKey,
+                        RowKey = item.RowKey,
+                        TweetID = item.TweetID,
+                        TweetTime = item.TweetTime,
+                        UserID = item.UserID,
+                        ScreenName = item.ScreenName,
+                        Text = item.Text,
+                        Url = item.Url,
+                        Location = item.Location,
+                        PlaceID = item.PlaceID,
+                        Latitude = item.Latitude,
+                        Longitude = item.Longitude
+                    });
+
+                } catch (Exception ex) {
+                    log.Error($"Insert Error: {ex.Message}");
+                }            
             }
 
             log.Info("Done.");
