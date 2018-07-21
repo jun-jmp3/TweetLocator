@@ -1,5 +1,6 @@
-
+using System;
 using System.IO;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
@@ -20,7 +21,7 @@ namespace TweetProcessorFromQue
     {
         [FunctionName("HttpTrigger")]
         public static IActionResult Run([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)]HttpRequest req,
-                                        [Table("TweetLocation", Connection = "AzureWebJobsStorage")] ICollector<TweetLocationTable> locationTable,
+                                        [Table("TweetLocation2", Connection = "AzureWebJobsStorage")] ICollector<TweetLocationTable> locationTable,
                                         TraceWriter log,
                                         ExecutionContext context)
         {
@@ -88,12 +89,12 @@ namespace TweetProcessorFromQue
                 var tokens = Tokens.Create(consumerKey, consumerSecret, accessToken, accessTokenSecret);
                 Search search = tokens.Search;
                 var task = search.TweetsAsync(new Dictionary<string, object>()
-            {
-                {"q", query},
-                {"count", count},
+                {
+                    {"q", query},
+                    {"count", count},
                     {"exclude_replies", true},
-                {"since", since},
-                {"until", until},
+                    {"since", since},
+                    {"until", until},
                     {"max_id", max_id - 1 }
                 });
 
@@ -112,7 +113,11 @@ namespace TweetProcessorFromQue
                     }
 
                     // ツイートを記録する
-                    register.InsertRecord(locationTable, tweet, place, log);
+                    var task3 = Task.Run(() =>
+                    {
+                        register.InsertRecord(locationTable, tweet, place, log);
+                    });
+
 
                     minID = System.Math.Min(minID, tweet.Id);
                 }
