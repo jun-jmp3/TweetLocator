@@ -96,6 +96,7 @@ namespace TweetProcessorFromQue
                     realUrl = url;
                 }
 
+                log.Info($"Regist: {status.Id}");
 
                 if (url != null)
                 {
@@ -133,8 +134,14 @@ namespace TweetProcessorFromQue
                         });
 
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
+                        log.Error($"Exception: {ex.Message},{ex.StackTrace}");
+
+                        if (ex.InnerException != null)
+                        {
+                            log.Error($"InnerException:  {ex.InnerException.Message}, {ex.InnerException.StackTrace}");
+                        }
                     }
                 }
                 else
@@ -185,6 +192,11 @@ namespace TweetProcessorFromQue
             catch (Exception ex)
             {
                 log.Error($"Exception: {ex.Message},{ex.StackTrace}");
+
+                if (ex.InnerException != null)
+                {
+                    log.Error($"InnerException:  {ex.InnerException.Message}, {ex.InnerException.StackTrace}");
+                }
             }
         }
     
