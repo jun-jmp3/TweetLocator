@@ -82,6 +82,7 @@ namespace TweetProcessorFromQue
                                 var status = task.Result;
                 */
 
+                int availableThread, availableCompletionPortThread;
                 long max_id = 0;
                 long minID = long.MaxValue;
                 while (true)
@@ -104,7 +105,10 @@ namespace TweetProcessorFromQue
                     TweetRegister register = new TweetRegister();
                     foreach (Status tweet in searchResult)
                     {
-                        log.Info($"Process tweet id: {tweet.Id}");
+                        System.Threading.ThreadPool.GetAvailableThreads(out availableThread, out availableCompletionPortThread);
+                        log.Info($"Process tweet id: {tweet.Id} availableThread: {availableThread}");
+
+
                         PlaceResponse place = null;
                         if (tweet.Place != null)
                         {
@@ -139,6 +143,7 @@ namespace TweetProcessorFromQue
                 }
             }catch (Exception ex) {
                 log.Error($"Exception: {ex.Message}, {ex.StackTrace}");
+
             }
 
             return (ActionResult)new OkObjectResult($"{DateTime.Now.ToString()}, {allCount}");
