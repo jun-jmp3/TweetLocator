@@ -76,7 +76,11 @@ namespace TweetProcessorFromQue
 
 
                 } catch (Exception ex) {
-                    log.Error($"Insert Error: {ex.Message}");
+                    log.Error($"Insert Error: {ex.Message},{ex.StackTrace}");
+                    if (ex.InnerException != null)
+                    {
+                        log.Error($"InnerException:  {ex.InnerException.Message}, {ex.InnerException.StackTrace}");
+                    }
                 }            
             }
 
