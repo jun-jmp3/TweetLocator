@@ -96,35 +96,60 @@ namespace TweetProcessorFromQue
                 {
                     WebRequest req = WebRequest.Create(url);
 
-                    using (WebResponse res = req.GetResponse())
+                    req.GetResponseAsync().ContinueWith(task =>
                     {
-                        realUrl = res.ResponseUri.AbsoluteUri;
-                    }
+                        using (WebResponse res = task.Result)
+                        {
+                            realUrl = res.ResponseUri.AbsoluteUri;
+
+                            // SampleTableへEntity(レコード)登録
+                            locationTable.Add(new TweetLocationTable()
+                            {
+                                PartitionKey = "k1",
+                                //                RowKey = randomStr,
+                                RowKey = status.Id.ToString(),
+                                TweetID = status.Id,
+                                TweetTime = status.CreatedAt.UtcDateTime,
+                                UserID = status.User.Id,
+                                ScreenName = status.User.ScreenName,
+                                Text = status.Text,
+                                Url = realUrl,
+                                Location = location,
+                                PlaceID = placeID,
+                                Latitude = latitude,
+                                Longitude = longitude
+                            }
+                                             );
+                        }
+                    });
+
                 }
                 catch (Exception)
                 {
                 }
             }
-
-            // SampleTableへEntity(レコード)登録
-            locationTable.Add(new TweetLocationTable()
+            else
             {
-                PartitionKey = "k1",
-//                RowKey = randomStr,
-                RowKey = status.Id.ToString(),
-                TweetID = status.Id,
-                TweetTime = status.CreatedAt.UtcDateTime,
-                UserID = status.User.Id,
-                ScreenName = status.User.ScreenName,
-                Text = status.Text,
-                Url = realUrl,
-                Location = location,
-                PlaceID = placeID,
-                Latitude = latitude,
-                Longitude = longitude
-            }
-                             );
 
+                // SampleTableへEntity(レコード)登録
+                locationTable.Add(new TweetLocationTable()
+                {
+                    PartitionKey = "k1",
+                    //                RowKey = randomStr,
+                    RowKey = status.Id.ToString(),
+                    TweetID = status.Id,
+                    TweetTime = status.CreatedAt.UtcDateTime,
+                    UserID = status.User.Id,
+                    ScreenName = status.User.ScreenName,
+                    Text = status.Text,
+                    Url = realUrl,
+                    Location = location,
+                    PlaceID = placeID,
+                    Latitude = latitude,
+                    Longitude = longitude
+                }
+                                 );
+            }
 
         }
     
