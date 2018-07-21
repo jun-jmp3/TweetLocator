@@ -144,6 +144,10 @@ namespace TweetProcessorFromQue
             }catch (Exception ex) {
                 log.Error($"Exception: {ex.Message}, {ex.StackTrace}");
 
+                if (ex.InnerException != null) {
+                    log.Error($"InnerException:  {ex.InnerException.Message}, {ex.InnerException.StackTrace}");
+                }
+
             }
 
             return (ActionResult)new OkObjectResult($"{DateTime.Now.ToString()}, {allCount}");
