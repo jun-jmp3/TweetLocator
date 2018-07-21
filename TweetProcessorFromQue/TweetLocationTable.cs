@@ -1,10 +1,10 @@
 ﻿using System;
+using Microsoft.WindowsAzure.Storage.Table;
+
 namespace TweetProcessorFromQue
 {
-    public class TweetLocationTable
+    public class TweetLocationTable : TableEntity
     {
-        public string PartitionKey { get; set; }
-        public string RowKey { get; set; }
         public long TweetID { get; set; }
         public long? UserID { get; set; }
         public string ScreenName { get; set; }
