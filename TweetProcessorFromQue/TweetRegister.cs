@@ -85,109 +85,35 @@ namespace TweetProcessorFromQue
                     .Select(s => s[random.Next(s.Length)]).ToArray());
                 */
 
-                // Textの中からUrlを取得して短縮URLを解決する。
-                string realUrl = "";
+                // Textの中からUrlを取得する。
                 Regex regex = new Regex("(.*)(?<url>https://t.co/[a-zA-Z0-9]{10}?)(.*)");
                 Match match = regex.Match(status.Text);
-                string url = match.Groups["url"].Value;
+                string url = "";
 
-                if (!string.IsNullOrEmpty(url))
-                {
-                    realUrl = url;
+                if (match.Success) {
+
+                    url = match.Groups["url"].Value;
+
                 }
+
 
                 log.Info($"Regist: {status.Id}");
-
-                if (url != null)
-                {
-
-                    try
-                    {
-
-                        WebRequest req = WebRequest.Create(url);
-
-                        req.GetResponseAsync().ContinueWith(task =>
-                        {
-                            using (WebResponse res = task.Result)
-                            {
-                                realUrl = res.ResponseUri.AbsoluteUri;
-
-                                // SampleTableへEntity(レコード)登録
-                                locationTable.Add(new TweetLocationTable()
-                                {
-                                    PartitionKey = "k1",
-                                    //                RowKey = randomStr,
-                                    RowKey = status.Id.ToString(),
-                                    TweetID = status.Id,
-                                    TweetTime = status.CreatedAt.UtcDateTime,
-                                    UserID = status.User.Id,
-                                    ScreenName = status.User.ScreenName,
-                                    Text = status.Text,
-                                    Url = realUrl,
-                                    Location = location,
-                                    PlaceID = placeID,
-                                    Latitude = latitude,
-                                    Longitude = longitude
-                                }
-                                                     );
-                            }
-                        });
-
-                    }
-                    catch (Exception ex)
-                    {
-                        log.Error($"Exception: {ex.Message},{ex.StackTrace}");
-
-                        if (ex.InnerException != null)
-                        {
-                            log.Error($"InnerException:  {ex.InnerException.Message}, {ex.InnerException.StackTrace}");
-                        }
-                    }
-                }
-                else
-                {
-
-                    // SampleTableへEntity(レコード)登録
-                    locationTable.Add(new TweetLocationTable()
-                    {
-                        PartitionKey = "k1",
-                        //                RowKey = randomStr,
-                        RowKey = status.Id.ToString(),
-                        TweetID = status.Id,
-                        TweetTime = status.CreatedAt.UtcDateTime,
-                        UserID = status.User.Id,
-                        ScreenName = status.User.ScreenName,
-                        Text = status.Text,
-                        Url = realUrl,
-                        Location = location,
-                        PlaceID = placeID,
-                        Latitude = latitude,
-                        Longitude = longitude
-                    }
-                                     );
-                }
-
-                /*
                 // SampleTableへEntity(レコード)登録
                 locationTable.Add(new TweetLocationTable()
                 {
                     PartitionKey = "k1",
-                    //                RowKey = randomStr,
                     RowKey = status.Id.ToString(),
                     TweetID = status.Id,
                     TweetTime = status.CreatedAt.UtcDateTime,
                     UserID = status.User.Id,
                     ScreenName = status.User.ScreenName,
                     Text = status.Text,
-                    Url = realUrl,
+                    Url = url,
                     Location = location,
                     PlaceID = placeID,
                     Latitude = latitude,
                     Longitude = longitude
-                }
-                                 );
-                */
-
+                });
             }
             catch (Exception ex)
             {

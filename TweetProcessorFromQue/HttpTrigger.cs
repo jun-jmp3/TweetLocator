@@ -21,7 +21,7 @@ namespace TweetProcessorFromQue
     {
         [FunctionName("HttpTrigger")]
         public static IActionResult Run([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)]HttpRequest req,
-                                        [Table("TweetLocation2", Connection = "AzureWebJobsStorage")] ICollector<TweetLocationTable> locationTable,
+                                        [Table("TweetLocation", Connection = "AzureWebJobsStorage")] ICollector<TweetLocationTable> locationTable,
                                         TraceWriter log,
                                         ExecutionContext context)
         {
