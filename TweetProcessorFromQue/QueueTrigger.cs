@@ -17,7 +17,7 @@ namespace TweetProcessorFromQue
         [FunctionName("QueueTrigger")]
         public static void Run(
             [QueueTrigger("wug-tweets-que", Connection = "AzureWebJobsStorage")] string myQueueItem, 
-            [Table("TweetLocation2", Connection = "AzureWebJobsStorage")] ICollector<TweetLocationTable> locationTable,
+            [Table("TweetLocation", Connection = "AzureWebJobsStorage")] ICollector<TweetLocationTable> locationTable,
             TraceWriter log, 
             ExecutionContext context)
         {
