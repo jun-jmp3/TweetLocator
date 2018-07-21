@@ -34,7 +34,7 @@ namespace TweetProcessorFromQue
             {
                 try
                 {
-                    log.Info($"Data loaded: '{item.PartitionKey}' | '{item.RowKey}' | '{item.ScreenName}' | '{item.Text}'");
+                    log.Info($"Data loaded: '{item.PartitionKey}' | '{item.RowKey}' | '{item.ScreenName}' | '{item.Url}'");
                     string realUrl = "";
                     if (!string.IsNullOrEmpty(item.Url))
                     {
