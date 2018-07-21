@@ -83,17 +83,23 @@ namespace TweetProcessorFromQue
             */
 
             // Textの中からUrlを取得して短縮URLを解決する。
+            string realUrl = "";
             Regex regex = new Regex("(.*)(?<url>https://t.co/[a-zA-Z0-9]{10}?)(.*)");
             Match match = regex.Match(status.Text);
             string url = match.Groups["url"].Value;
 
-            string realUrl = "";
+            if (!string.IsNullOrEmpty(url)) {
+                realUrl = url;
+            }
 
+
+            /*
             if (url != null)
             {
 
                 try
                 {
+                    
                     WebRequest req = WebRequest.Create(url);
 
                     req.GetResponseAsync().ContinueWith(task =>
@@ -150,6 +156,26 @@ namespace TweetProcessorFromQue
                 }
                                  );
             }
+            */
+
+            // SampleTableへEntity(レコード)登録
+            locationTable.Add(new TweetLocationTable()
+            {
+                PartitionKey = "k1",
+                //                RowKey = randomStr,
+                RowKey = status.Id.ToString(),
+                TweetID = status.Id,
+                TweetTime = status.CreatedAt.UtcDateTime,
+                UserID = status.User.Id,
+                ScreenName = status.User.ScreenName,
+                Text = status.Text,
+                Url = realUrl,
+                Location = location,
+                PlaceID = placeID,
+                Latitude = latitude,
+                Longitude = longitude
+            }
+                             );
 
         }
     
