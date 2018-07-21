@@ -104,7 +104,7 @@ namespace TweetProcessorFromQue
                     TweetRegister register = new TweetRegister();
                     foreach (Status tweet in searchResult)
                     {
-
+                        log.Info($"Process tweet id: {tweet.Id}");
                         PlaceResponse place = null;
                         if (tweet.Place != null)
                         {
