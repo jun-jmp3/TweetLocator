@@ -61,6 +61,7 @@ namespace TweetProcessorFromQue
             TableContinuationToken token = null;
             int allCount = 0;
             int allErrCount = 0;
+            int maxInsertedTweetID = 0;
             do
             {
                 int count = 0;
@@ -112,6 +113,8 @@ namespace TweetProcessorFromQue
                                     Longitude = item.Longitude
                                 });
 
+                                maxTweetID = Math.Max(maxTweetID, item.TweetID);
+
                             }
                             catch (Exception ex)
                             {
@@ -146,7 +149,27 @@ namespace TweetProcessorFromQue
 
             } while (token != null);
 
-            log.Info($"Done: {allCount},{allErrCount}");
+            log.Info($"Insert Done MaxTweetID: {maxInsertedTweetID} AllCount: {allCount} AllErrorCount: {allErrCount}");
+
+            try
+            {
+                var task = maxIDTable.ExecuteAsync(TableOperation.Replace(new TweetMaxIDTable()
+                {
+                    PartitionKey = "k1",
+                    RowKey = "max",
+                    TweetID = maxInsertedTweetID
+                }));
+            }
+            catch (Exception ex)
+            {
+                log.Error($"Error: {ex.Message},{ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    log.Error($"InnerException:  {ex.InnerException.Message}, {ex.InnerException.StackTrace}");
+                }
+            }
+
+            log.Info($"MaxTweetID Update Done. {maxInsertedTweetID}");
 
         }
     }
