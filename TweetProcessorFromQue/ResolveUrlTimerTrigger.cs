@@ -15,9 +15,10 @@ namespace TweetProcessorFromQue
 {
     public static class ResolveUrlTimerTrigger
     {
+        
         [FunctionName("ResolveUrlTimerTrigger")]
         public static void Run(
-            [TimerTrigger("0 1 * * * *")]TimerInfo myTimer, 
+            [TimerTrigger("0 1 * * * *"), Disable()]TimerInfo myTimer, 
             [Table("TweetLocation", Connection = "AzureWebJobsStorage")] CloudTable inputTable,
             [Table("TweetLocation3", Connection = "AzureWebJobsStorage")] ICollector<TweetLocationTable> outputTable,
             TraceWriter log,
