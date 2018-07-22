@@ -15,21 +15,43 @@ namespace TweetProcessorFromQue
 {
     public static class ResolveUrlTimerTrigger
     {
-        
+
+        private static Dictionary<string, string> urlCache = new Dictionary<string, string>();
+
         [FunctionName("ResolveUrlTimerTrigger")]
         public static void Run(
             [TimerTrigger("0 1 * * * *"), Disable()]TimerInfo myTimer, 
             [Table("TweetLocation", Connection = "AzureWebJobsStorage")] CloudTable inputTable,
+            [Table("TweetMaxID", Connection = "AzureWebJobsStorage")] CloudTable maxIDTable,
             [Table("TweetLocation3", Connection = "AzureWebJobsStorage")] ICollector<TweetLocationTable> outputTable,
             TraceWriter log,
             ExecutionContext context)
         {
             log.Info($"C# Timer trigger function executed at: {DateTime.Now}");
 
-            /*
-            var querySegment = inputTable.ExecuteQuerySegmentedAsync(new TableQuery<TweetLocationTable>().Where(
-                TableQuery.GenerateFilterCondition("ScreenName", QueryComparisons.Equal, "fjun2347")), null);
-                */
+
+            // MAX IDを取得する。
+            long maxTweetID = 0;
+            try {
+
+                var tableQuery = new TableQuery<TweetMaxIDTable>();
+
+                var querySegment = maxIDTable.ExecuteQuerySegmentedAsync(tableQuery, null);
+                foreach (TweetMaxIDTable item in querySegment.Result) {
+                    maxTweetID = item.TweetID;
+                }
+
+            } catch (Exception ex) {
+                
+                log.Error($"Error: {ex.Message},{ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    log.Error($"InnerException:  {ex.InnerException.Message}, {ex.InnerException.StackTrace}");
+                }
+
+            }
+            log.Info($"MAX TWEET ID: {maxTweetID}");
+
             TableContinuationToken token = null;
             int allCount = 0;
             int allErrCount = 0;
@@ -37,7 +59,8 @@ namespace TweetProcessorFromQue
             {
                 int count = 0;
                 int errCount = 0;
-                var tableQuery = new TableQuery<TweetLocationTable>();
+                var tableQuery = new TableQuery<TweetLocationTable>()
+                    .Where(TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.GreaterThanOrEqual, maxTweetID.ToString()));
 
                 var querySegment = inputTable.ExecuteQuerySegmentedAsync(tableQuery, token);
                 foreach (TweetLocationTable item in querySegment.Result)
@@ -45,18 +68,28 @@ namespace TweetProcessorFromQue
                     count++;
                     try
                     {
-                        log.Info($"Data loaded: '{item.PartitionKey}' | '{item.RowKey}' | '{item.ScreenName}' | '{item.Url}'");
+                        log.Info($"Data loaded: '{item.RowKey}' | '{item.ScreenName}' | '{item.Url}'");
                         string realUrl = "";
                         if (!string.IsNullOrEmpty(item.Url))
                         {
 
                             try
                             {
+                                if (urlCache.ContainsKey(item.Url))
+                                {
+                                    log.Info("get url from cache.");
+                                    realUrl = urlCache[item.Url];
+                                }
+                                else
+                                {
+                                    WebRequest req = WebRequest.Create(item.Url);
 
-                                WebRequest req = WebRequest.Create(item.Url);
+                                    var res = req.GetResponse();
+                                    realUrl = res.ResponseUri.AbsoluteUri;
 
-                                var res = req.GetResponse();
-                                realUrl = res.ResponseUri.AbsoluteUri;
+                                    urlCache[item.Url] = realUrl;
+                                }
+
                                 outputTable.Add(new TweetLocationTable()
                                 {
                                     PartitionKey = item.PartitionKey,
