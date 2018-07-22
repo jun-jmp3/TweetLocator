@@ -29,66 +29,80 @@ namespace TweetProcessorFromQue
             var querySegment = inputTable.ExecuteQuerySegmentedAsync(new TableQuery<TweetLocationTable>().Where(
                 TableQuery.GenerateFilterCondition("ScreenName", QueryComparisons.Equal, "fjun2347")), null);
                 */
-            var querySegment = inputTable.ExecuteQuerySegmentedAsync(new TableQuery<TweetLocationTable>(), null);
-            int count = 0;
-            int errCount = 0;
-            foreach (TweetLocationTable item in querySegment.Result)
+            TableContinuationToken token = null;
+            int allCount = 0;
+            int allErrCount = 0;
+            do
             {
-                count++;
-                try
+                int count = 0;
+                int errCount = 0;
+                var querySegment = inputTable.ExecuteQuerySegmentedAsync(new TableQuery<TweetLocationTable>(), token);
+                foreach (TweetLocationTable item in querySegment.Result)
                 {
-                    log.Info($"Data loaded: '{item.PartitionKey}' | '{item.RowKey}' | '{item.ScreenName}' | '{item.Url}'");
-                    string realUrl = "";
-                    if (!string.IsNullOrEmpty(item.Url))
+                    count++;
+                    try
                     {
-
-                        try
+                        log.Info($"Data loaded: '{item.PartitionKey}' | '{item.RowKey}' | '{item.ScreenName}' | '{item.Url}'");
+                        string realUrl = "";
+                        if (!string.IsNullOrEmpty(item.Url))
                         {
 
-                            WebRequest req = WebRequest.Create(item.Url);
-
-                            var res = req.GetResponse();
-                            realUrl = res.ResponseUri.AbsoluteUri;
-                            outputTable.Add(new TweetLocationTable()
+                            try
                             {
-                                PartitionKey = item.PartitionKey,
-                                RowKey = item.RowKey,
-                                TweetID = item.TweetID,
-                                TweetTime = item.TweetTime,
-                                UserID = item.UserID,
-                                ScreenName = item.ScreenName,
-                                Text = item.Text,
-                                Url = realUrl,
-                                Location = item.Location,
-                                PlaceID = item.PlaceID,
-                                Latitude = item.Latitude,
-                                Longitude = item.Longitude
-                            });                                
- 
-                        }
-                        catch (Exception ex)
-                        {
-                            errCount++;
-                            log.Error($"Exception: {ex.Message},{ex.StackTrace}");
 
-                            if (ex.InnerException != null)
+                                WebRequest req = WebRequest.Create(item.Url);
+
+                                var res = req.GetResponse();
+                                realUrl = res.ResponseUri.AbsoluteUri;
+                                outputTable.Add(new TweetLocationTable()
+                                {
+                                    PartitionKey = item.PartitionKey,
+                                    RowKey = item.RowKey,
+                                    TweetID = item.TweetID,
+                                    TweetTime = item.TweetTime,
+                                    UserID = item.UserID,
+                                    ScreenName = item.ScreenName,
+                                    Text = item.Text,
+                                    Url = realUrl,
+                                    Location = item.Location,
+                                    PlaceID = item.PlaceID,
+                                    Latitude = item.Latitude,
+                                    Longitude = item.Longitude
+                                });
+
+                            }
+                            catch (Exception ex)
                             {
-                                log.Error($"InnerException:  {ex.InnerException.Message}, {ex.InnerException.StackTrace}");
+                                errCount++;
+                                log.Error($"Exception: {ex.Message},{ex.StackTrace}");
+
+                                if (ex.InnerException != null)
+                                {
+                                    log.Error($"InnerException:  {ex.InnerException.Message}, {ex.InnerException.StackTrace}");
+                                }
                             }
                         }
+
+
                     }
-
-
-                } catch (Exception ex) {
-                    log.Error($"Insert Error: {ex.Message},{ex.StackTrace}");
-                    if (ex.InnerException != null)
+                    catch (Exception ex)
                     {
-                        log.Error($"InnerException:  {ex.InnerException.Message}, {ex.InnerException.StackTrace}");
+                        log.Error($"Insert Error: {ex.Message},{ex.StackTrace}");
+                        if (ex.InnerException != null)
+                        {
+                            log.Error($"InnerException:  {ex.InnerException.Message}, {ex.InnerException.StackTrace}");
+                        }
                     }
-                }            
-            }
+                }
 
-            log.Info($"Done: {count},{errCount}");
+                log.Info($"Fetch: {count},{errCount}");
+
+                allCount += count;
+                allErrCount += errCount;
+
+            } while (token != null);
+
+            log.Info($"Done: {allCount},{allErrCount}");
 
         }
     }
