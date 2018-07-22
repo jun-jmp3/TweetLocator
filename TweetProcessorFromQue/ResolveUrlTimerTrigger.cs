@@ -37,7 +37,9 @@ namespace TweetProcessorFromQue
             {
                 int count = 0;
                 int errCount = 0;
-                var querySegment = inputTable.ExecuteQuerySegmentedAsync(new TableQuery<TweetLocationTable>(), token);
+                var tableQuery = new TableQuery<TweetLocationTable>();
+
+                var querySegment = inputTable.ExecuteQuerySegmentedAsync(tableQuery, token);
                 foreach (TweetLocationTable item in querySegment.Result)
                 {
                     count++;
@@ -100,6 +102,8 @@ namespace TweetProcessorFromQue
 
                 allCount += count;
                 allErrCount += errCount;
+
+                token = querySegment.Result.ContinuationToken;
 
             } while (token != null);
 
