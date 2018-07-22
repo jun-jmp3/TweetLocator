@@ -61,7 +61,7 @@ namespace TweetProcessorFromQue
             TableContinuationToken token = null;
             int allCount = 0;
             int allErrCount = 0;
-            int maxInsertedTweetID = 0;
+            long maxInsertedTweetID = 0;
             do
             {
                 int count = 0;
@@ -75,7 +75,9 @@ namespace TweetProcessorFromQue
                     count++;
                     try
                     {
-                        log.Info($"Data loaded: '{item.RowKey}' | '{item.ScreenName}' | '{item.Url}'");
+                        log.Info($"Data loaded: '{item.RowKey}' | '{item.TweetID}' | '{item.ScreenName}' | '{item.Url}'");
+                        maxInsertedTweetID = Math.Max(maxInsertedTweetID, item.TweetID);
+
                         string realUrl = "";
                         if (!string.IsNullOrEmpty(item.Url))
                         {
@@ -113,7 +115,6 @@ namespace TweetProcessorFromQue
                                     Longitude = item.Longitude
                                 });
 
-                                maxInsertedTweetID = Math.Max(maxTweetID, item.TweetID);
 
                             }
                             catch (Exception ex)
