@@ -113,7 +113,7 @@ namespace TweetProcessorFromQue
                                     Longitude = item.Longitude
                                 });
 
-                                maxTweetID = Math.Max(maxTweetID, item.TweetID);
+                                maxInsertedTweetID = Math.Max(maxTweetID, item.TweetID);
 
                             }
                             catch (Exception ex)
