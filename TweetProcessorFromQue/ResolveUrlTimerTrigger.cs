@@ -30,8 +30,11 @@ namespace TweetProcessorFromQue
                 TableQuery.GenerateFilterCondition("ScreenName", QueryComparisons.Equal, "fjun2347")), null);
                 */
             var querySegment = inputTable.ExecuteQuerySegmentedAsync(new TableQuery<TweetLocationTable>(), null);
+            int count = 0;
+            int errCount = 0;
             foreach (TweetLocationTable item in querySegment.Result)
             {
+                count++;
                 try
                 {
                     log.Info($"Data loaded: '{item.PartitionKey}' | '{item.RowKey}' | '{item.ScreenName}' | '{item.Url}'");
@@ -65,6 +68,7 @@ namespace TweetProcessorFromQue
                         }
                         catch (Exception ex)
                         {
+                            errCount++;
                             log.Error($"Exception: {ex.Message},{ex.StackTrace}");
 
                             if (ex.InnerException != null)
@@ -84,7 +88,7 @@ namespace TweetProcessorFromQue
                 }            
             }
 
-            log.Info("Done.");
+            log.Info($"Done: {count},{errCount}");
 
         }
     }
