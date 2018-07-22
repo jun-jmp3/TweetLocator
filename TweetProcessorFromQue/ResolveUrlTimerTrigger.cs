@@ -20,7 +20,7 @@ namespace TweetProcessorFromQue
 
         [FunctionName("ResolveUrlTimerTrigger")]
         public static void Run(
-            [TimerTrigger("0 1 * * * *"), Disable()]TimerInfo myTimer, 
+            [TimerTrigger("0 1 * * * *")]TimerInfo myTimer, 
             [Table("TweetLocation", Connection = "AzureWebJobsStorage")] CloudTable inputTable,
             [Table("TweetMaxID", Connection = "AzureWebJobsStorage")] CloudTable maxIDTable,
             [Table("TweetLocation3", Connection = "AzureWebJobsStorage")] ICollector<TweetLocationTable> outputTable,
@@ -52,6 +52,12 @@ namespace TweetProcessorFromQue
             }
             log.Info($"MAX TWEET ID: {maxTweetID}");
 
+            if (maxTweetID == -1) {
+                // 動作指示がないため処理を行わずに抜ける。
+                log.Info("end procedure.");
+                return;
+            }
+
             TableContinuationToken token = null;
             int allCount = 0;
             int allErrCount = 0;
@@ -77,7 +83,7 @@ namespace TweetProcessorFromQue
                             {
                                 if (urlCache.ContainsKey(item.Url))
                                 {
-                                    log.Info("get url from cache.");
+                                    // log.Info("get url from cache.");
                                     realUrl = urlCache[item.Url];
                                 }
                                 else
