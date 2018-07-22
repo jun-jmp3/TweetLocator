@@ -67,7 +67,7 @@ namespace TweetProcessorFromQue
                 int count = 0;
                 int errCount = 0;
                 var tableQuery = new TableQuery<TweetLocationTable>()
-                    .Where(TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.GreaterThanOrEqual, maxTweetID.ToString()));
+                    .Where(TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.GreaterThan, maxTweetID.ToString()));
 
                 var querySegment = inputTable.ExecuteQuerySegmentedAsync(tableQuery, token);
                 foreach (TweetLocationTable item in querySegment.Result)
