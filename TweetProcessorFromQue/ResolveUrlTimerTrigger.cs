@@ -157,6 +157,7 @@ namespace TweetProcessorFromQue
                 {
                     PartitionKey = "k1",
                     RowKey = "max",
+                    ETag = "*",
                     TweetID = maxInsertedTweetID
                 }));
             }
