@@ -64,9 +64,14 @@ namespace TweetProcessorFromQue
 
                 string since = req.Query["since"];
                 string until = req.Query["until"];
-                string since_id = req.Query["since_id"];
-                if (string.IsNullOrEmpty(since_id)) {
-                    since_id = "0";
+                long since_id = 0;
+                if (!string.IsNullOrEmpty(req.Query["since_id"])) {
+                    since_id = Convert.ToInt64(req.Query["since_id"]);
+                }
+                long max_id = Int64.MaxValue;
+                if (!string.IsNullOrEmpty(req.Query["max_id"]))
+                {
+                    max_id = Convert.ToInt64(req.Query["max_id"]);
                 }
 
                 /*
@@ -87,10 +92,10 @@ namespace TweetProcessorFromQue
                 */
 
                 int availableThread, availableCompletionPortThread;
-                long max_id = 0;
                 long minID = long.MaxValue;
                 while (true)
                 {
+                    log.Info($"{query}, {count}, {since}, {until}, {since_id}, {max_id - 1}");
                     // Search Tweets
                     // アクセストークン
                     var tokens = Tokens.Create(consumerKey, consumerSecret, accessToken, accessTokenSecret);
