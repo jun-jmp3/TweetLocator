@@ -154,13 +154,16 @@ namespace TweetProcessorFromQue
 
             try
             {
-                var task = maxIDTable.ExecuteAsync(TableOperation.Replace(new TweetMaxIDTable()
+                if (maxInsertedTweetID != 0)
                 {
-                    PartitionKey = "k1",
-                    RowKey = "max",
-                    ETag = "*",
-                    TweetID = maxInsertedTweetID
-                }));
+                    var task = maxIDTable.ExecuteAsync(TableOperation.Replace(new TweetMaxIDTable()
+                    {
+                        PartitionKey = "k1",
+                        RowKey = "max",
+                        ETag = "*",
+                        TweetID = maxInsertedTweetID
+                    }));
+                }
             }
             catch (Exception ex)
             {
