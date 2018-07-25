@@ -64,6 +64,10 @@ namespace TweetProcessorFromQue
 
                 string since = req.Query["since"];
                 string until = req.Query["until"];
+                string since_id = req.Query["since_id"];
+                if (string.IsNullOrEmpty(since_id)) {
+                    since_id = "0";
+                }
 
                 /*
                 string name = req.Query["name"];
@@ -98,6 +102,7 @@ namespace TweetProcessorFromQue
                     {"exclude_replies", true},
                     {"since", since},
                     {"until", until},
+                    {"since_id", since_id},
                     {"max_id", max_id - 1 }
                 });
 
