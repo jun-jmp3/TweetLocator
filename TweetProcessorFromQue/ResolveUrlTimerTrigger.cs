@@ -25,7 +25,7 @@ namespace TweetProcessorFromQue
             [TimerTrigger("0 1 * * * *")]TimerInfo myTimer, 
             [Table("TweetLocation", Connection = "AzureWebJobsStorage")] CloudTable inputTable,
             [Table("TweetMaxID", Connection = "AzureWebJobsStorage")] CloudTable maxIDTable,
-            [Table("OnmusuCharactorName", Connection = "AzureWebJobsStorage")] CloudTable onmusuTable,
+            [Table("OnmusuCharactorTable", Connection = "AzureWebJobsStorage")] CloudTable onmusuTable,
             [Table("TweetLocation3", Connection = "AzureWebJobsStorage")] ICollector<TweetLocationTable> outputTable,
             TraceWriter log,
             ExecutionContext context)
