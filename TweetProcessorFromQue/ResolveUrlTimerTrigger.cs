@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Net;
 using System.Text;
+using System.Linq;
 
 namespace TweetProcessorFromQue
 {
@@ -17,18 +18,19 @@ namespace TweetProcessorFromQue
     {
 
         private static Dictionary<string, string> urlCache = new Dictionary<string, string>();
+        private static Dictionary<string, string> charaNameTable = null;
 
         [FunctionName("ResolveUrlTimerTrigger")]
         public static void Run(
             [TimerTrigger("0 1 * * * *")]TimerInfo myTimer, 
             [Table("TweetLocation", Connection = "AzureWebJobsStorage")] CloudTable inputTable,
             [Table("TweetMaxID", Connection = "AzureWebJobsStorage")] CloudTable maxIDTable,
+            [Table("OnmusuCharactorName", Connection = "AzureWebJobsStorage")] CloudTable onmusuTable,
             [Table("TweetLocation3", Connection = "AzureWebJobsStorage")] ICollector<TweetLocationTable> outputTable,
             TraceWriter log,
             ExecutionContext context)
         {
             log.Info($"C# Timer trigger function executed at: {DateTime.Now}");
-
 
             // MAX IDを取得する。
             long maxTweetID = 0;
@@ -52,10 +54,41 @@ namespace TweetProcessorFromQue
             }
             log.Info($"MAX TWEET ID: {maxTweetID}");
 
-            if (maxTweetID == -1) {
+            if (maxTweetID == -1)
+            {
                 // 動作指示がないため処理を行わずに抜ける。
                 log.Info("end procedure.");
                 return;
+            }
+
+            // charatableを取得
+            if (charaNameTable == null)
+            {
+                log.Info($"Creating charactor table.");
+
+                try
+                {
+                    charaNameTable = new Dictionary<string, string>();
+                    var tableQuery = new TableQuery<CharactorTable>();
+
+                    var querySegment = onmusuTable.ExecuteQuerySegmentedAsync(tableQuery, null);
+                    foreach (CharactorTable item in querySegment.Result)
+                    {
+                        charaNameTable[item.SearchName] = item.FullName;
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    log.Error($"Error: {ex.Message},{ex.StackTrace}");
+                    if (ex.InnerException != null)
+                    {
+                        log.Error($"InnerException:  {ex.InnerException.Message}, {ex.InnerException.StackTrace}");
+                    }
+
+                }
+
+                log.Info($"Creating charactor table done. [{charaNameTable.Count}]");
             }
 
             TableContinuationToken token = null;
@@ -99,6 +132,8 @@ namespace TweetProcessorFromQue
                                     urlCache[item.Url] = realUrl;
                                 }
 
+                                var charaName = GetCharactorName(item.Text, log);
+
                                 outputTable.Add(new TweetLocationTable()
                                 {
                                     PartitionKey = item.PartitionKey,
@@ -109,6 +144,7 @@ namespace TweetProcessorFromQue
                                     ScreenName = item.ScreenName,
                                     Text = item.Text,
                                     Url = realUrl,
+                                    Charactor = charaName,
                                     Location = item.Location,
                                     PlaceID = item.PlaceID,
                                     Latitude = item.Latitude,
@@ -177,5 +213,36 @@ namespace TweetProcessorFromQue
             log.Info($"MaxTweetID Update Done. {maxInsertedTweetID}");
 
         }
+
+
+        private static string GetCharactorName(string text, TraceWriter log)
+        {
+            string result = "";
+            try
+            {
+
+                foreach(string searchName in charaNameTable.Keys)
+                {
+                    if (text.Contains(searchName))
+                    {
+                        result = charaNameTable[searchName];
+                        break;
+                    }
+                }
+
+            }catch(Exception ex)
+            {
+                log.Error($"Error: {ex.Message},{ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    log.Error($"InnerException:  {ex.InnerException.Message}, {ex.InnerException.StackTrace}");
+                }
+
+            }
+
+            return result;
+        }
+
+
     }
 }
