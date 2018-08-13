@@ -56,10 +56,12 @@ namespace TweetProcessorFromQue
                     return new BadRequestObjectResult("Please pass a keyword on the query string or in the request body");
                 }
 
-                string count = req.Query["count"];
-                if (string.IsNullOrEmpty(count))
+                string countParam = req.Query["count"];
+                int count = 100;
+                if (!string.IsNullOrEmpty(countParam))
                 {
-                    count = "100";
+                    count = Convert.ToInt32(countParam);
+
                 }
 
                 string since = req.Query["since"];
@@ -96,20 +98,31 @@ namespace TweetProcessorFromQue
                 while (true)
                 {
                     log.Info($"{query}, {count}, {since}, {until}, {since_id}, {max_id - 1}");
+                    // log.Info($"{query}, {count}, {since_id}, {max_id - 1}");
                     // Search Tweets
                     // アクセストークン
                     var tokens = Tokens.Create(consumerKey, consumerSecret, accessToken, accessTokenSecret);
                     Search search = tokens.Search;
-                    var task = search.TweetsAsync(new Dictionary<string, object>()
-                {
-                    {"q", query},
-                    {"count", count},
-                    {"exclude_replies", true},
-                    {"since", since},
-                    {"until", until},
-                    {"since_id", since_id},
-                    {"max_id", max_id - 1 }
-                });
+                    Dictionary<string, object> metaDict = new Dictionary<string, object>()
+                    {
+                        {"q", query},
+                        {"count", count},
+                        {"exclude_replies", true},
+                        {"since_id", since_id},
+                        {"max_id", max_id - 1 }
+                    };
+
+                    if (!string.IsNullOrEmpty(since))
+                    {
+                        metaDict.Add("since", since);
+                    }
+
+                    if (!string.IsNullOrEmpty(until))
+                    {
+                        metaDict.Add("until", until);
+                    }
+
+                    var task = search.TweetsAsync(metaDict);
 
                     SearchResult searchResult = task.Result;
                     TweetRegister register = new TweetRegister();
@@ -117,7 +130,6 @@ namespace TweetProcessorFromQue
                     {
                         System.Threading.ThreadPool.GetAvailableThreads(out availableThread, out availableCompletionPortThread);
                         log.Info($"Process tweet id: {tweet.Id} availableThread: {availableThread}");
-
 
                         PlaceResponse place = null;
                         if (tweet.Place != null)
@@ -133,7 +145,6 @@ namespace TweetProcessorFromQue
                         {
                             register.InsertRecord(locationTable, tweet, place, log);
                         });
-
 
                         minID = System.Math.Min(minID, tweet.Id);
                     }
