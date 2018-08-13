@@ -55,6 +55,13 @@ namespace TweetProcessorFromQue
             }
             log.Info($"PREVIOUS MAX TWEET ID: {maxTweetID}");
 
+            if (maxTweetID == -1)
+            {
+                // 動作指示がないため処理を行わずに抜ける。
+                log.Info("end procedure.");
+                return;
+            }
+
             // 指定MAX IDを取得する。
             long designatedTweetID = long.MaxValue;
             try
