@@ -215,7 +215,7 @@ namespace TweetProcessorFromQue
 
             try
             {
-                if (maxInsertedTweetID != 0 && designatedTweetID != long.MaxValue)
+                if (maxInsertedTweetID != 0 && designatedTweetID == long.MaxValue)
                 {
                     var task = maxIDTable.ExecuteAsync(TableOperation.Replace(new TweetMaxIDTable()
                     {
