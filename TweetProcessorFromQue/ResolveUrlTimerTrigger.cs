@@ -32,11 +32,12 @@ namespace TweetProcessorFromQue
         {
             log.Info($"C# Timer trigger function executed at: {DateTime.Now}");
 
-            // MAX IDを取得する。
+            // 前回MAX IDを取得する。
             long maxTweetID = 0;
             try {
 
-                var tableQuery = new TableQuery<TweetMaxIDTable>();
+                var tableQuery = new TableQuery<TweetMaxIDTable>()
+                    .Where(TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, "max"));
 
                 var querySegment = maxIDTable.ExecuteQuerySegmentedAsync(tableQuery, null);
                 foreach (TweetMaxIDTable item in querySegment.Result) {
@@ -52,14 +53,34 @@ namespace TweetProcessorFromQue
                 }
 
             }
-            log.Info($"MAX TWEET ID: {maxTweetID}");
+            log.Info($"PREVIOUS MAX TWEET ID: {maxTweetID}");
 
-            if (maxTweetID == -1)
+            // 指定MAX IDを取得する。
+            long designatedTweetID = long.MaxValue;
+            try
             {
-                // 動作指示がないため処理を行わずに抜ける。
-                log.Info("end procedure.");
-                return;
+
+                var tableQuery = new TableQuery<TweetMaxIDTable>()
+                    .Where(TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, "max2"));
+
+                var querySegment = maxIDTable.ExecuteQuerySegmentedAsync(tableQuery, null);
+                foreach (TweetMaxIDTable item in querySegment.Result)
+                {
+                    designatedTweetID = item.TweetID;
+                }
+
             }
+            catch (Exception ex)
+            {
+
+                log.Error($"Error: {ex.Message},{ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    log.Error($"InnerException:  {ex.InnerException.Message}, {ex.InnerException.StackTrace}");
+                }
+
+            }
+            log.Info($"DESIGNATED MAX TWEET ID: {designatedTweetID}");
 
             // charatableを取得
             if (charaNameTable == null)
@@ -100,7 +121,11 @@ namespace TweetProcessorFromQue
                 int count = 0;
                 int errCount = 0;
                 var tableQuery = new TableQuery<TweetLocationTable>()
-                    .Where(TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.GreaterThan, maxTweetID.ToString()));
+                    .Where(
+                        TableQuery.CombineFilters(
+                            TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.GreaterThan, maxTweetID.ToString()),
+                            TableOperators.And,
+                            TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.LessThan, designatedTweetID.ToString())));
 
                 var querySegment = inputTable.ExecuteQuerySegmentedAsync(tableQuery, token);
                 foreach (TweetLocationTable item in querySegment.Result)
@@ -190,7 +215,7 @@ namespace TweetProcessorFromQue
 
             try
             {
-                if (maxInsertedTweetID != 0)
+                if (maxInsertedTweetID != 0 && designatedTweetID != long.MaxValue)
                 {
                     var task = maxIDTable.ExecuteAsync(TableOperation.Replace(new TweetMaxIDTable()
                     {
