@@ -171,6 +171,7 @@ namespace TweetProcessorFromQue
 
             }
 
+            log.Info($"Process tweets count: {allCount}");
             return (ActionResult)new OkObjectResult($"{DateTime.Now.ToString()}, {allCount}");
 
         }
